@@ -17,24 +17,28 @@
 
 package com.udacity.asteroidradar.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
-import com.example.android.trackmysleepquality.database.DatabaseAsteroid
-import com.example.android.trackmysleepquality.database.PictureDatabase
-import com.example.android.trackmysleepquality.database.asDomainModel
 import com.udacity.asteroidradar.Asteroid
 import com.udacity.asteroidradar.api.NasaApi
+import com.udacity.asteroidradar.api.parseAsteroidsJsonResult
+import com.udacity.asteroidradar.database.VideosDatabase
+import com.udacity.asteroidradar.model.asDatabaseModel
+import com.udacity.asteroidradar.model.asDomainModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Response
 
-class VideosRepository(private val database: PictureDatabase) {
+class VideosRepository(private val database: VideosDatabase) {
 
     /**
      * A playlist of videos that can be shown on the screen.
      */
     val videos: LiveData<List<Asteroid>> =
-            Transformations.map(database.sleepDatabaseDao.getAsteroid()) {
+            Transformations.map(database.videoDao.getAsteroid()) {
         it.asDomainModel()
     }
 
@@ -47,11 +51,19 @@ class VideosRepository(private val database: PictureDatabase) {
      *
      * To actually load the videos for use, observe [videos]
      */
-    suspend fun refreshVideos() {
+   suspend fun refreshVideos() {
         withContext(Dispatchers.IO) {
-            val playlist = NasaApi.retrofitService.getStringResponse()
-            val jsonObject = JSONObject(playlist)
-            //database.sleepDatabaseDao.insertAll(*jsonObject.asDatabaseModel())
+                NasaApi.retrofitService.getStringResponse().enqueue( object: retrofit2.Callback<String> {
+                    override fun onFailure(call: Call<String>, t: Throwable) {
+                    }
+                    override fun onResponse(call: Call<String>, response: Response<String>) {
+
+                        val jsonObject = JSONObject(response.body().toString())
+                        var data = parseAsteroidsJsonResult(jsonObject)
+                        database.videoDao.insertAll(*data.asDatabaseModel())
+                    }
+                })
+
         }
     }
 }

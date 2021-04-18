@@ -3,20 +3,21 @@ package com.udacity.asteroidradar.main
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
-import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.udacity.asteroidradar.Asteroid
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.api.NasaApi
 import com.udacity.asteroidradar.api.parseAsteroidsJsonResult
+import com.udacity.asteroidradar.database.getDatabase
+import com.udacity.asteroidradar.model.AsteroidModel
+import com.udacity.asteroidradar.model.asDomainModel
+import com.udacity.asteroidradar.repository.VideosRepository
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Response
-import java.util.logging.Filter
 
 
-class MainViewModel( val database: SleepDatabaseDao,
-                     application: Application): AndroidViewModel(application) {
+class MainViewModel(application: Application): AndroidViewModel(application) {
 
 
     // Internally, we use a MutableLiveData, because we will be updating the List of MarsProperty
@@ -40,23 +41,28 @@ class MainViewModel( val database: SleepDatabaseDao,
     val navigateToSelectedProperty: LiveData<Asteroid>
         get() = _navigateToSelectedProperty
 
-
+    private val database = getDatabase(application)
+    private val videosRepository = VideosRepository(database)
 
 
     init {
+        viewModelScope.launch {
+            getPictureOfDayAstroid()
+        }
 
-       getPictureOfDayAstroid()
-        getAstroid()
+        viewModelScope.launch {
+            videosRepository.refreshVideos()
+        }
 
     }
 
    //val asteroids = videosRepository.videos
 
-     private fun getPictureOfDayAstroid() {
+     suspend fun getPictureOfDayAstroid() {
          viewModelScope.launch {
              //_status.value = MarsApiStatus.LOADING
              try {
-                var ok  = NasaApi.retrofitService.getPictureOfDay()
+                 _properties.value  = NasaApi.retrofitService.getPictureOfDay()
 
 
 
@@ -73,12 +79,12 @@ class MainViewModel( val database: SleepDatabaseDao,
 
 
 
-    private fun getAstroid() {
+    suspend fun getAstroid() {
         viewModelScope.launch {
 
             NasaApi.retrofitService.getStringResponse().enqueue( object: retrofit2.Callback<String> {
                 override fun onFailure(call: Call<String>, t: Throwable) {
-                   // asteroids.value = ArrayList()
+                    _astroids.value = ArrayList()
                     Log.i("fail===","=="+t.message)
                 }
 
@@ -86,8 +92,11 @@ class MainViewModel( val database: SleepDatabaseDao,
 
                     Log.i("i===","=="+response.body())
                     val jsonObject = JSONObject(response.body().toString())
-                    _astroids.value = parseAsteroidsJsonResult(jsonObject)
-                    database.insertAll()
+                   var data = ArrayList<Asteroid>()
+                    var data1 = parseAsteroidsJsonResult(jsonObject)
+                    _astroids.value = data
+                    Log.i("dat===","==$data")
+                   // database.videoDao.insertAll(*data1.asD)
                     Log.i("ggg","g==="+parseAsteroidsJsonResult(jsonObject).size)
                 }
             })
@@ -110,12 +119,11 @@ class MainViewModel( val database: SleepDatabaseDao,
         _navigateToSelectedProperty.value = null
     }
 
-    class Factory(private val dataSource: SleepDatabaseDao,
-                  private val application: Application) : ViewModelProvider.Factory {
+    class Factory(private val application: Application) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return MainViewModel(dataSource,application) as T
+                return MainViewModel(application) as T
             }
             throw IllegalArgumentException("Unable to construct viewmodel")
         }
