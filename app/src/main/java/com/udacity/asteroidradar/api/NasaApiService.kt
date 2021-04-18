@@ -57,7 +57,7 @@ interface NasaApiService {
     suspend fun getPictureOfDay( ): PictureOfDay
 
     @GET(value = "neo/rest/v1/feed?start_date=2021-04-17&end_date=2021-04-24&api_key=fUa738pdYocTUykPvL39AcOWOEib4NlbCnRRmsFl")
-    fun getStringResponse(): Call<String>
+    fun getStringResponse(): String
 
    /* @GET(value = "neo/rest/v1/feed?start_date=2015-09-07&end_date=2015-09-08&api_key=fUa738pdYocTUykPvL39AcOWOEib4NlbCnRRmsFl")
     suspend fun getJson(): Call<JSONObject>*/

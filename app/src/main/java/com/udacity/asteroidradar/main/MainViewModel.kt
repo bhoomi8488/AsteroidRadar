@@ -3,6 +3,7 @@ package com.udacity.asteroidradar.main
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.udacity.asteroidradar.Asteroid
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.api.NasaApi
@@ -11,9 +12,11 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Response
+import java.util.logging.Filter
 
 
-class MainViewModel( application: Application): AndroidViewModel(application) {
+class MainViewModel( val database: SleepDatabaseDao,
+                     application: Application): AndroidViewModel(application) {
 
 
     // Internally, we use a MutableLiveData, because we will be updating the List of MarsProperty
@@ -38,8 +41,7 @@ class MainViewModel( application: Application): AndroidViewModel(application) {
         get() = _navigateToSelectedProperty
 
 
-   //private val database = getDatabase(application)
-   //private val videosRepository = VideosRepository(database)
+
 
     init {
 
@@ -54,7 +56,10 @@ class MainViewModel( application: Application): AndroidViewModel(application) {
          viewModelScope.launch {
              //_status.value = MarsApiStatus.LOADING
              try {
-                _properties.value = NasaApi.retrofitService.getPictureOfDay()
+                var ok  = NasaApi.retrofitService.getPictureOfDay()
+
+
+
                  //var img = NasaApi.retrofitService.getPictureOfDay()
                  Log.i("picture==","=="+_properties.value)
                  //database.imageDao.insert(_properties.value)
@@ -65,6 +70,7 @@ class MainViewModel( application: Application): AndroidViewModel(application) {
              }
          }
      }
+
 
 
     private fun getAstroid() {
@@ -81,6 +87,7 @@ class MainViewModel( application: Application): AndroidViewModel(application) {
                     Log.i("i===","=="+response.body())
                     val jsonObject = JSONObject(response.body().toString())
                     _astroids.value = parseAsteroidsJsonResult(jsonObject)
+                    database.insertAll()
                     Log.i("ggg","g==="+parseAsteroidsJsonResult(jsonObject).size)
                 }
             })
@@ -103,11 +110,12 @@ class MainViewModel( application: Application): AndroidViewModel(application) {
         _navigateToSelectedProperty.value = null
     }
 
-    class Factory(val app: Application) : ViewModelProvider.Factory {
+    class Factory(private val dataSource: SleepDatabaseDao,
+                  private val application: Application) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return MainViewModel(app) as T
+                return MainViewModel(dataSource,application) as T
             }
             throw IllegalArgumentException("Unable to construct viewmodel")
         }
