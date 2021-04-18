@@ -1,10 +1,8 @@
 package com.udacity.asteroidradar.main
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.udacity.asteroidradar.Asteroid
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.api.NasaApi
@@ -12,11 +10,10 @@ import com.udacity.asteroidradar.api.parseAsteroidsJsonResult
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
 
 
-class MainViewModel : ViewModel() {
+class MainViewModel( application: Application): AndroidViewModel(application) {
 
 
     // Internally, we use a MutableLiveData, because we will be updating the List of MarsProperty
@@ -40,40 +37,54 @@ class MainViewModel : ViewModel() {
     val navigateToSelectedProperty: LiveData<Asteroid>
         get() = _navigateToSelectedProperty
 
+
+   //private val database = getDatabase(application)
+   //private val videosRepository = VideosRepository(database)
+
     init {
-        //getPictureOfDayAstroid()
+
+       getPictureOfDayAstroid()
         getAstroid()
+
     }
 
-    /* private fun getPictureOfDayAstroid() {
+   //val asteroids = videosRepository.videos
+
+     private fun getPictureOfDayAstroid() {
          viewModelScope.launch {
              //_status.value = MarsApiStatus.LOADING
              try {
-                 _properties.value = NasaApi.retrofitService.getPictureOfDay()
+                _properties.value = NasaApi.retrofitService.getPictureOfDay()
+                 //var img = NasaApi.retrofitService.getPictureOfDay()
                  Log.i("picture==","=="+_properties.value)
+                 //database.imageDao.insert(_properties.value)
                 // _status.value = MarsApiStatus.DONE
              } catch (e: Exception) {
                  //_status.value = MarsApiStatus.ERROR
                  _properties.value = null
              }
          }
-     }*/
+     }
 
 
     private fun getAstroid() {
         viewModelScope.launch {
-            NasaApi.retrofitService.getJson().enqueue(object : Callback<JSONObject> {
-                override fun onFailure(call: Call<JSONObject>, t: Throwable) {
-                   Log.i("fail==","=="+t.message)
+
+            NasaApi.retrofitService.getStringResponse().enqueue( object: retrofit2.Callback<String> {
+                override fun onFailure(call: Call<String>, t: Throwable) {
+                   // asteroids.value = ArrayList()
+                    Log.i("fail===","=="+t.message)
                 }
 
-                override fun onResponse(call: Call<JSONObject>, response: Response<JSONObject>) {
-                    _astroids.value = parseAsteroidsJsonResult((response.body()))
-                    Log.i("VALUE====", "===" + _astroids.value)
+                override fun onResponse(call: Call<String>, response: Response<String>) {
+
+                    Log.i("i===","=="+response.body())
+                    val jsonObject = JSONObject(response.body().toString())
+                    _astroids.value = parseAsteroidsJsonResult(jsonObject)
+                    Log.i("ggg","g==="+parseAsteroidsJsonResult(jsonObject).size)
                 }
-
-
             })
+
         }
     }
 
@@ -90,6 +101,16 @@ class MainViewModel : ViewModel() {
      */
     fun displayPropertyDetailsComplete() {
         _navigateToSelectedProperty.value = null
+    }
+
+    class Factory(val app: Application) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return MainViewModel(app) as T
+            }
+            throw IllegalArgumentException("Unable to construct viewmodel")
+        }
     }
 
 }

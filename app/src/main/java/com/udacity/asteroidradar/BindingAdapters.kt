@@ -4,7 +4,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.databinding.BindingAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import com.udacity.asteroidradar.databinding.AstoridListBinding
+import com.udacity.asteroidradar.main.AsteroidAdapter
 
 @BindingAdapter("statusIcon")
 fun bindAsteroidStatusImage(imageView: ImageView, isHazardous: Boolean) {
@@ -42,12 +45,7 @@ fun bindTextViewToDisplayVelocity(textView: TextView, number: Double) {
     textView.text = String.format(context.getString(R.string.km_s_unit_format), number)
 }
 
-@BindingAdapter("astroidDate")
-fun TextView.setAstroidDateString(item: Asteroid?) {
-    item?.let {
-        text = convertStringToDateString(item.closeApproachDate, context.resources)
-    }
-}
+
 
 /**
  * Uses the Picasso library to load an image by URL into an [ImageView]
@@ -64,4 +62,11 @@ fun bindImage(imgView: ImageView, imgUrl: String?,imgType: String? ) {
                     .into(imgView)
         }
     }
+}
+
+
+@BindingAdapter("listData")
+fun bindRecyclerView(recyclerView: RecyclerView, data: List<Asteroid>?) {
+    val adapter = recyclerView.adapter as AsteroidAdapter
+    adapter.submitList(data)
 }
