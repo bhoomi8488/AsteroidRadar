@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
+//parse the list of asteoid data which  is get from tha API
 fun parseAsteroidsJsonResult(jsonResult: JSONObject?): ArrayList<Asteroid> {
     val nearEarthObjectsJson = jsonResult!!.getJSONObject("near_earth_objects")
 
@@ -45,6 +46,7 @@ fun parseAsteroidsJsonResult(jsonResult: JSONObject?): ArrayList<Asteroid> {
     return asteroidList
 }
 
+//get the arraylist of week dates,
 private fun getNextSevenDaysFormattedDates(): ArrayList<String> {
     val formattedDateList = ArrayList<String>()
 
@@ -64,3 +66,54 @@ private fun getNextSevenDaysFormattedDates(): ArrayList<String> {
 
     return formattedDateList
 }
+
+//Get the current date
+fun getStartDate(): String{
+    val calendar = Calendar.getInstance()
+    val currentTime = calendar.time
+    val dateFormat =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+        } else {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        }
+    println("start date"+dateFormat.format(currentTime))
+    return dateFormat.format(currentTime)
+}
+
+//get the after 7 days date(after week)
+fun getEndDate(): String {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.DAY_OF_YEAR, +7)
+    val currentTime = calendar.time
+    //val dateFormat = SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+    val dateFormat =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+        } else {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        }
+    dateFormat.format(currentTime)
+    println("end date"+dateFormat.format(currentTime))
+
+    return dateFormat.format(currentTime)
+}
+
+//Get the yesterday date
+fun getYesterDayDate(): String {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.DAY_OF_YEAR, -1)
+    val currentTime = calendar.time
+    //val dateFormat = SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+    val dateFormat =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+        } else {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        }
+    dateFormat.format(currentTime)
+    println("Yesterday"+dateFormat.format(currentTime))
+
+    return dateFormat.format(currentTime)
+}
+

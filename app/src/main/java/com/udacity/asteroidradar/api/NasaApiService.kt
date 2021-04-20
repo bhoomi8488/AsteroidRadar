@@ -6,21 +6,17 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.udacity.asteroidradar.Asteroid
 import com.udacity.asteroidradar.Constants
 import com.udacity.asteroidradar.PictureOfDay
-import kotlinx.coroutines.Deferred
 import okhttp3.ResponseBody
 import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
-import retrofit2.http.Url
-
+import retrofit2.http.Query
 
 /**
  * Created by Bhoomi on 4/14/2021.
  */
-enum class MarsApiFilter(val value: String) { SHOW_IMAGE("image") }
 /**
  * Build the Moshi object that Retrofit will be using, making sure to add the Kotlin adapter for
  * full Kotlin compatibility.
@@ -40,33 +36,23 @@ private val retrofit = Retrofit.Builder()
         .baseUrl(Constants.BASE_URL)
         .build()
 
-
-
-
-
 /**
  * A public interface that exposes the [getProperties] method
  */
 interface NasaApiService {
     /**
      * Returns a Coroutine [List] of [Asteroid] which can be fetched with await() if in a Coroutine scope.
-     * The @GET annotation indicates that the "realestate" endpoint will be requested with the GET
+     * The @GET annotation indicates that the "planetary/apod" endpoint will be requested with the GET
      * HTTP method
+     * Pass the query string for the API_Key
      */
-    @GET(value = "planetary/apod?api_key=fUa738pdYocTUykPvL39AcOWOEib4NlbCnRRmsFl")
-    suspend fun getPictureOfDay( ): PictureOfDay
+    @GET(value = "planetary/apod")
+    suspend fun getPictureOfDay(@Query("api_key") key : String ): PictureOfDay
 
-    @GET(value = "neo/rest/v1/feed?start_date=2021-04-18&end_date=2021-04-25&api_key=fUa738pdYocTUykPvL39AcOWOEib4NlbCnRRmsFl")
-    fun getStringResponse(): Call<String>
-
-   /* @GET(value = "neo/rest/v1/feed?start_date=2015-09-07&end_date=2015-09-08&api_key=fUa738pdYocTUykPvL39AcOWOEib4NlbCnRRmsFl")
-    suspend fun getJson(): Call<JSONObject>*/
-
-    //suspend fun getAstroid( ): List<Asteroid>
+// Get the Asteroid data from current date to week
+    @GET(value = "neo/rest/v1/feed")
+    fun getAsteroidData(@Query("start_date") start_date: String, @Query("end_date") end_date: String, @Query("api_key") key : String) :Call<String>
 }
-
-
-
 
 /**
  * A public Api object that exposes the lazy-initialized Retrofit service
