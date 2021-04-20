@@ -37,7 +37,6 @@ class AsteroidApplication : Application() {
             setupRecurringWork()
         }
     }
-
     private fun setupRecurringWork() {
         val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
