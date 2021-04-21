@@ -44,6 +44,16 @@ fun bindTextViewToDisplayVelocity(textView: TextView, number: Double) {
 }
 
 
+@BindingAdapter("pictureOfDayTitle","imageType")
+fun bindTextViewToDisplayTitle(textView: TextView, title: String?,imgType: String?) {
+    val context = textView.context
+    if(imgType == "image") {
+        textView.text = title
+    }else{
+        textView.text = context.getString(R.string.this_is_nasa_s_picture_of_day_showing_nothing_yet)
+    }
+}
+
 
 /**
  * Uses the Picasso library to load an image by URL into an [ImageView]
@@ -61,15 +71,6 @@ fun bindImage(imgView: ImageView, imgUrl: String?,imgType: String? ) {
         }
     }
 }
-
-
-/*
-@BindingAdapter("listData")
-fun bindRecyclerView(recyclerView: RecyclerView, data: List<Asteroid>?) {
-    val adapter = recyclerView.adapter as AsteroidAdapter1
-    adapter.submitLi(data)
-}*/
-
 
 @BindingAdapter("goneIfNotNull")
 fun goneIfNotNull(view: View, it: Any?) {

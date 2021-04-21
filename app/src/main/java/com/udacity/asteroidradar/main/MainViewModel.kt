@@ -40,6 +40,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 _properties.value = NasaApi.retrofitService.getPictureOfDay(Constants.API_KEY)
+                println(_properties.value )
             } catch (e: Exception) {
                 _properties.value = null
             }
